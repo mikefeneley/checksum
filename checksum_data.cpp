@@ -1,5 +1,7 @@
 #include "checksum_data.h"
 
+#include "stdio.h"
+
 checksum_data::checksum_data()
 {
 	filename = "";
@@ -14,6 +16,9 @@ void checksum_data::set_filename(QString Qfilename)
 void checksum_data::set_checksum(QString Qchecksum)
 {
 	this->checksum = Qchecksum.toStdString();
+	std::transform(checksum.begin(), checksum.end(), 
+						checksum.begin(), ::tolower);
+
 }
 
 QString checksum_data::compare_checksum(algo algorithim)
@@ -21,41 +26,54 @@ QString checksum_data::compare_checksum(algo algorithim)
 
 	std::cout << filename << "\n";
 	std::cout << checksum << "\n";
-	QString return_msg;
+	std::string return_msg;
 
 	if(!algorithim) {
-		return_msg = "Please specifiy which hash function to use";
+		return_msg = "Please specifiy which checksum function to use";
 	} else if (filename.empty()){
 		return_msg = "Please select a file to check";
 	} else {
+		std::string checksum_function;
 		std::string checksum_result;
 		if(algorithim == Md5) {
+			checksum_function = "Checksum function: MD5\n\n";
 			checksum_result = get_md5();
 		} else if (algorithim == Sha1) {
+			checksum_function = "Checksum function: SHA1\n\n";
 			checksum_result = get_sha1();
 		} else if (algorithim == Sha256) {
+			checksum_function = "Checksum function: SHA256\n\n";
 			checksum_result = get_sha256();
 		} else if (algorithim == Sha512) {
+			checksum_function = "Checksum function: SHA512\n\n";
 			checksum_result = get_sha512();
 		} else {
-			checksum_result = "Could not find hash function";
+			return "Could not calculate checksum";
 		}
 
-
-		// Need to take case sensisittive into consideration
+		std::string result;
 		if(checksum_result.compare(checksum) == 0) {
-			return_msg == "Checksum is the same\n";
+			result = "Checksums are equal\n";
 		} else {
-			return_msg = QString::fromStdString(checksum_result);
+			result = "Checksums are not equal\n";
 		}
 
-
-
-
+		std::string file_line = "File: " + filename + "\n";
+		std::string file_checksum = "File checksum: " + checksum_result + "\n\n";
+		std::string text_checksum = "Textfield checksum: \n" + checksum + "\n\n";
+		return_msg = file_line + checksum_function + file_checksum 
+							+ text_checksum + result;
 	}
-	return return_msg;
+	return QString::fromStdString(return_msg);
 
 }
+
+
+/*
+ * Note: Check Zedwood for SHA 1
+ 		 Seperate file conversion into its own file.
+ 		 Free data.
+ */
 
 std::string checksum_data::get_md5()
 {
@@ -64,6 +82,7 @@ std::string checksum_data::get_md5()
   	long size;
   	char * buffer;
   	size_t result;
+  	std::string hexdigest;
   	
   	file = fopen (filename.c_str(), "rb" );
 	fseek (file , 0 , SEEK_END);
@@ -75,20 +94,90 @@ std::string checksum_data::get_md5()
 
 	md5.update(buffer, result);
 	md5.finalize();
-	return md5.hexdigest();
+	hexdigest = "\n" + md5.hexdigest();
+	return hexdigest;
 }
+
 
 std::string checksum_data::get_sha1()
 {
-	return "find sha1 implemented";
+
+  	FILE * file;
+  	long size;
+  	char * buffer;
+  	size_t result;
+  	unsigned char hash[20];
+	char hexstring[41];
+
+  	file = fopen (filename.c_str(), "rb" );
+	fseek (file , 0 , SEEK_END);
+	size = ftell (file);
+  	rewind (file);
+	buffer = (char*) malloc (sizeof(char)*size);
+ 	result = fread (buffer, 1, size, file);
+
+
+	sha1::calc(file, size, hash);
+	sha1::toHexString(hash, hexstring);
+	std::string hexdigest(hexstring);
+ 	return hexdigest;
 }
 
 std::string checksum_data::get_sha256()
 {
-	return "find sha256 implemented";
+	SHA256 sha256 = SHA256();
+	sha256.init();
+	FILE * file;
+  	long size;
+  	char * buffer;
+  	size_t result;
+
+  	file = fopen (filename.c_str(), "rb" );
+	fseek (file , 0 , SEEK_END);
+	size = ftell (file);
+  	rewind (file);
+    unsigned char digest[SHA256::DIGEST_SIZE];
+
+	buffer = (char*) malloc (sizeof(char)*size);
+ 	result = fread (buffer, 1, size, file);
+ 	sha256.update((unsigned char *)buffer, result);
+ 	sha256.final(digest);
+
+    char buf[2*SHA256::DIGEST_SIZE+1];
+    buf[2*SHA256::DIGEST_SIZE] = 0;
+    for (int i = 0; i < SHA256::DIGEST_SIZE; i++)
+        sprintf(buf+i*2, "%02x", digest[i]);
+    std::string hexdigest(buf);
+
+ 	return hexdigest;
+
 }
 
 std::string checksum_data::get_sha512()
 {
-	return "find sha512 implemented";
-}
+	SHA512 sha512 = SHA512();
+	sha512.init();
+	FILE * file;
+  	long size;
+  	char * buffer;
+  	size_t result;
+
+  	file = fopen (filename.c_str(), "rb" );
+	fseek (file , 0 , SEEK_END);
+	size = ftell (file);
+  	rewind (file);
+    unsigned char digest[SHA512::DIGEST_SIZE];
+
+	buffer = (char*) malloc (sizeof(char)*size);
+ 	result = fread (buffer, 1, size, file);
+ 	sha512.update((unsigned char *)buffer, result);
+ 	sha512.final(digest);
+
+    char buf[2*SHA512::DIGEST_SIZE+1];
+    buf[2*SHA512::DIGEST_SIZE] = 0;
+    for (int i = 0; i < SHA512::DIGEST_SIZE; i++)
+        sprintf(buf+i*2, "%02x", digest[i]);
+    std::string hexdigest(buf);
+
+ 	return hexdigest;
+ }

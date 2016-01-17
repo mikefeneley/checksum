@@ -10,7 +10,7 @@ checksum_window::checksum_window(checksum_data *data)
 
 	this->data = data;
 	layout = new QGridLayout(this);
-	checksum_label = new QLabel("\nPaste checksum in the text box", this);
+	checksum_label = new QLabel("\nPaste hex valued checksum in the text box", this);
 	file_label = new QLabel("Click in the box or drag file to box to select checksum file");
 	checksum_type = new QLabel("Checksum Algorithim:");
 	checksum = new QPlainTextEdit(this);
@@ -41,7 +41,8 @@ void checksum_window::setup_signals()
 {
 	connect(file_display, SIGNAL(new_file(QString)), 
 			this, SLOT(update_filename(QString)));
-	connect(submit, SIGNAL(clicked(bool)), this, SLOT(check_checksum(bool)));
+	connect(submit, SIGNAL(clicked(bool)), 
+			this, SLOT(check_checksum(bool)));
 
 }
 
