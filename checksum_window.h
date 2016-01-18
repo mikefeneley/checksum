@@ -11,6 +11,7 @@
 #include <QGridLayout>
 #include <QMessageBox>
 #include <QPlainTextEdit>
+#include <QDropEvent>
 #include "checksum_data.h"
 #include "file_holder.h"
 
@@ -22,7 +23,7 @@ class checksum_window : public QWidget
 
 	public:
 		checksum_window(checksum_data *data);
-
+		~checksum_window();
 
 	private slots:
 		void update_filename(QString filename);
@@ -30,6 +31,7 @@ class checksum_window : public QWidget
 
 	private:
 		void setup_signals();
+		void add_widgets();
 
 	private:
 		QGridLayout *layout;

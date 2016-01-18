@@ -13,6 +13,7 @@ file_holder::file_holder(QWidget *parent)
  */
 void file_holder::mousePressEvent(QMouseEvent *event)
 {	
+
 	QString file_name = QFileDialog::getOpenFileName(this, 
 										tr("Select Checksum File"));
 
@@ -22,5 +23,4 @@ void file_holder::mousePressEvent(QMouseEvent *event)
 	} else {
 		this->setText("File: ");
 	}
-
 }

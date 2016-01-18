@@ -16,9 +16,16 @@ typedef enum hash_algo {
     Sha512 = 4,
 } algo;
 
+
+/*
+ * Obkect holds the filename whose checksum we want to verify,
+ * and the hex string of the checksum we want to verify against.
+ *
+ * Getter functions are used to obtain the checksum of filename
+ * using that particular checksum algorithim.
+ */
 class checksum_data
 {
-
     public:
 		    checksum_data();
         void set_filename(QString filename);
